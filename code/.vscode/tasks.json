@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "sqlproj: Build book management",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"c:/BookManagement/book management/book management.sqlproj"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "Builds the book management SQL project"
+		}
+	]
+}
