@@ -45,6 +45,10 @@ namespace BookManagement.Application.Services
                 PublishedYear = dto.PublishedYear,
                 Genre = dto.Genre,
                 Status = dto.Status,
+                Isbn = dto.Isbn,
+                Publisher = dto.Publisher,
+                Rating = dto.Rating,
+                CoverImagePath = dto.CoverImagePath,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -68,6 +72,10 @@ namespace BookManagement.Application.Services
             book.PublishedYear = dto.PublishedYear;
             book.Genre = dto.Genre;
             book.Status = dto.Status;
+            book.Isbn = dto.Isbn;
+            book.Publisher = dto.Publisher;
+            book.Rating = dto.Rating;
+            book.CoverImagePath = dto.CoverImagePath;
 
             _bookRepository.Update(book);
             await _bookRepository.SaveChangesAsync();
@@ -163,6 +171,10 @@ namespace BookManagement.Application.Services
             PublishedYear = book.PublishedYear,
             Genre = book.Genre,
             Status = book.Status,
+            Isbn = book.Isbn,
+            Publisher = book.Publisher,
+            Rating = book.Rating,
+            CoverImagePath = book.CoverImagePath,
             CreatedAt = book.CreatedAt
         };
     }
