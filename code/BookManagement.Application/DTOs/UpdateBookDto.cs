@@ -28,5 +28,14 @@ namespace BookManagement.Application.DTOs
 
         [Required(ErrorMessage = "Please select a status.")]
         public BookStatus Status { get; set; }
+
+        [StringLength(20, ErrorMessage = "ISBN looks too long.")]
+        public string? Isbn { get; set; }
+
+        [StringLength(150)]
+        public string? Publisher { get; set; }
+
+        [Range(0, 5, ErrorMessage = "Rating must be between 0 and 5.")]
+        public double Rating { get; set; }
     }
 }

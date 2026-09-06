@@ -14,11 +14,14 @@ namespace BookManagement.Domain.Entities
         public decimal Price { get; set; }
         public int PublishedYear { get; set; }
 
-        // New fields for the dropdown feature.
         public Genre Genre { get; set; }
         public BookStatus Status { get; set; }
 
-        // Needed so the dashboard can show "recently added" books.
+        // New fields for the card/grid redesign.
+        public string? Isbn { get; set; }
+        public string? Publisher { get; set; }
+        public double Rating { get; set; } // 0.0 - 5.0
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

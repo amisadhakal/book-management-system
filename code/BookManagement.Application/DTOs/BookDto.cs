@@ -2,9 +2,6 @@ using BookManagement.Domain.Enums;
 
 namespace BookManagement.Application.DTOs
 {
-    // Used for READ operations (Index, Details). Controllers and Views
-    // never touch the Domain entity directly — they work with DTOs,
-    // which keeps the Web layer decoupled from how data is stored.
     public class BookDto
     {
         public int Id { get; set; }
@@ -14,6 +11,9 @@ namespace BookManagement.Application.DTOs
         public int PublishedYear { get; set; }
         public Genre Genre { get; set; }
         public BookStatus Status { get; set; }
+        public string? Isbn { get; set; }
+        public string? Publisher { get; set; }
+        public double Rating { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

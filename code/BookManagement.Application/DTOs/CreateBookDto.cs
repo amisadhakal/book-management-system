@@ -3,9 +3,6 @@ using BookManagement.Domain.Enums;
 
 namespace BookManagement.Application.DTOs
 {
-    // Bound to the Create form. Validation lives here (Application layer)
-    // rather than on the Domain entity, since "what a valid create request
-    // looks like" is an application concern, not a core business rule.
     public class CreateBookDto
     {
         [Required(ErrorMessage = "Title is required.")]
@@ -24,12 +21,20 @@ namespace BookManagement.Application.DTOs
         [Range(1000, 2100, ErrorMessage = "Enter a reasonable published year.")]
         public int PublishedYear { get; set; }
 
-        // Bound from the Genre <select> dropdown on the Create form.
         [Required(ErrorMessage = "Please select a genre.")]
         public Genre Genre { get; set; }
 
-        // Bound from the Status <select> dropdown on the Create form.
         [Required(ErrorMessage = "Please select a status.")]
         public BookStatus Status { get; set; }
+
+        // Optional — cards fall back gracefully if these are blank.
+        [StringLength(20, ErrorMessage = "ISBN looks too long.")]
+        public string? Isbn { get; set; }
+
+        [StringLength(150)]
+        public string? Publisher { get; set; }
+
+        [Range(0, 5, ErrorMessage = "Rating must be between 0 and 5.")]
+        public double Rating { get; set; }
     }
 }
