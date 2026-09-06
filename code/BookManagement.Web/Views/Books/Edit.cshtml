@@ -50,6 +50,24 @@
         <span asp-validation-for="Status" class="text-danger"></span>
     </div>
 
+    <div class="form-group mb-3">
+        <label asp-for="Isbn" class="control-label"></label>
+        <input asp-for="Isbn" class="form-control" placeholder="e.g. 978-0261102217" />
+        <span asp-validation-for="Isbn" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Publisher" class="control-label"></label>
+        <input asp-for="Publisher" class="form-control" placeholder="e.g. Penguin Books" />
+        <span asp-validation-for="Publisher" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Rating" class="control-label"></label>
+        <input asp-for="Rating" type="number" step="0.1" min="0" max="5" class="form-control" />
+        <span asp-validation-for="Rating" class="text-danger"></span>
+    </div>
+
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </form>
