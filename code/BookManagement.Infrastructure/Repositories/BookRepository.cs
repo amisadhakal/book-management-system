@@ -1,3 +1,4 @@
+using BookManagement.Application.DTOs;
 using BookManagement.Application.Interfaces;
 using BookManagement.Domain.Entities;
 using BookManagement.Infrastructure.Data;
@@ -52,6 +53,34 @@ namespace BookManagement.Infrastructure.Repositories
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        // Builds the query incrementally so EF Core translates only the
+        // filters that are actually set into a single SQL WHERE clause —
+        // no unnecessary conditions, no pulling the whole table into memory.
+        public async Task<IEnumerable<Book>> GetFilteredAsync(BookFilterDto filter)
+        {
+            var query = _context.Books.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var term = filter.SearchTerm.Trim();
+                query = query.Where(b =>
+                    EF.Functions.Like(b.Title, $"%{term}%") ||
+                    EF.Functions.Like(b.Author, $"%{term}%"));
+            }
+
+            if (filter.Genre.HasValue)
+            {
+                query = query.Where(b => b.Genre == filter.Genre.Value);
+            }
+
+            if (filter.Status.HasValue)
+            {
+                query = query.Where(b => b.Status == filter.Status.Value);
+            }
+
+            return await query.OrderBy(b => b.Title).ToListAsync();
         }
     }
 }
