@@ -13,11 +13,16 @@ namespace BookManagement.Web.Controllers
     // even swap EF Core for Dapper, and this file never changes.
     public class BooksController : Controller
     {
-        private readonly IBookService _bookService;
+        private static readonly string[] AllowedCoverExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        private const long MaxCoverSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-        public BooksController(IBookService bookService)
+        private readonly IBookService _bookService;
+        private readonly IWebHostEnvironment _env;
+
+        public BooksController(IBookService bookService, IWebHostEnvironment env)
         {
             _bookService = bookService;
+            _env = env;
         }
 
         // GET /Books
@@ -66,13 +71,23 @@ namespace BookManagement.Web.Controllers
         // POST /Books/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateBookDto dto)
+        public async Task<IActionResult> Create(CreateBookDto dto, IFormFile? coverImage)
         {
+            if (coverImage != null && coverImage.Length > 0 && !TryValidateCoverImage(coverImage, out var error))
+            {
+                ModelState.AddModelError(nameof(coverImage), error!);
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
                 ViewBag.StatusList = BuildStatusSelectList(dto.Status);
                 return View(dto);
+            }
+
+            if (coverImage != null && coverImage.Length > 0)
+            {
+                dto.CoverImagePath = await SaveCoverImageAsync(coverImage);
             }
 
             await _bookService.CreateBookAsync(dto);
@@ -96,7 +111,11 @@ namespace BookManagement.Web.Controllers
                 Price = book.Price,
                 PublishedYear = book.PublishedYear,
                 Genre = book.Genre,
-                Status = book.Status
+                Status = book.Status,
+                Isbn = book.Isbn,
+                Publisher = book.Publisher,
+                Rating = book.Rating,
+                CoverImagePath = book.CoverImagePath
             };
 
             ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
@@ -107,11 +126,16 @@ namespace BookManagement.Web.Controllers
         // POST /Books/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UpdateBookDto dto)
+        public async Task<IActionResult> Edit(int id, UpdateBookDto dto, IFormFile? coverImage)
         {
             if (id != dto.Id)
             {
                 return NotFound();
+            }
+
+            if (coverImage != null && coverImage.Length > 0 && !TryValidateCoverImage(coverImage, out var error))
+            {
+                ModelState.AddModelError(nameof(coverImage), error!);
             }
 
             if (!ModelState.IsValid)
@@ -119,6 +143,14 @@ namespace BookManagement.Web.Controllers
                 ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
                 ViewBag.StatusList = BuildStatusSelectList(dto.Status);
                 return View(dto);
+            }
+
+            // dto.CoverImagePath already holds the existing path, round-tripped
+            // via the hidden field in Edit.cshtml. Only overwrite it if the
+            // user actually picked a new file this time.
+            if (coverImage != null && coverImage.Length > 0)
+            {
+                dto.CoverImagePath = await SaveCoverImageAsync(coverImage);
             }
 
             var success = await _bookService.UpdateBookAsync(dto);
@@ -162,6 +194,46 @@ namespace BookManagement.Web.Controllers
                     Selected = selected.HasValue && selected.Value == g
                 })
                 .ToList();
+        }
+
+        // Saves the uploaded file under wwwroot/uploads/covers with a
+        // random file name (so titles/collisions never matter) and
+        // returns the relative URL to store on the book, e.g.
+        // "/uploads/covers/3f2a1c9e4b7d4a2f.jpg".
+        private async Task<string> SaveCoverImageAsync(IFormFile file)
+        {
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "covers");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var fileName = $"{Guid.NewGuid():N}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return $"/uploads/covers/{fileName}";
+        }
+
+        private static bool TryValidateCoverImage(IFormFile file, out string? error)
+        {
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedCoverExtensions.Contains(extension))
+            {
+                error = "Cover image must be a .jpg, .png, .gif, or .webp file.";
+                return false;
+            }
+
+            if (file.Length > MaxCoverSizeBytes)
+            {
+                error = "Cover image must be smaller than 5 MB.";
+                return false;
+            }
+
+            error = null;
+            return true;
         }
 
         private static List<SelectListItem> BuildStatusSelectList(BookStatus? selected)
