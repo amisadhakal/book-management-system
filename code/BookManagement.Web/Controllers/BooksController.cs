@@ -1,6 +1,8 @@
 using BookManagement.Application.DTOs;
 using BookManagement.Application.Interfaces;
+using BookManagement.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookManagement.Web.Controllers
 {
@@ -19,9 +21,26 @@ namespace BookManagement.Web.Controllers
         }
 
         // GET /Books
-        public async Task<IActionResult> Index()
+        // Also handles search/filter: searchTerm, genre and status all
+        // come in as optional query-string params from the filter form
+        // on Index.cshtml, e.g. /Books?searchTerm=tolkien&genre=Fantasy
+        public async Task<IActionResult> Index(string? searchTerm, Genre? genre, BookStatus? status)
         {
-            var books = await _bookService.GetAllBooksAsync();
+            var filter = new BookFilterDto
+            {
+                SearchTerm = searchTerm,
+                Genre = genre,
+                Status = status
+            };
+
+            var books = await _bookService.SearchBooksAsync(filter);
+
+            // Echo the current filter back to the view so the form fields
+            // stay populated with what the user searched for.
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.GenreList = BuildGenreSelectList(genre);
+            ViewBag.StatusList = BuildStatusSelectList(status);
+
             return View(books);
         }
 
@@ -39,6 +58,8 @@ namespace BookManagement.Web.Controllers
         // GET /Books/Create
         public IActionResult Create()
         {
+            ViewBag.GenreList = BuildGenreSelectList(null);
+            ViewBag.StatusList = BuildStatusSelectList(null);
             return View();
         }
 
@@ -49,6 +70,8 @@ namespace BookManagement.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
+                ViewBag.StatusList = BuildStatusSelectList(dto.Status);
                 return View(dto);
             }
 
@@ -71,9 +94,13 @@ namespace BookManagement.Web.Controllers
                 Title = book.Title,
                 Author = book.Author,
                 Price = book.Price,
-                PublishedYear = book.PublishedYear
+                PublishedYear = book.PublishedYear,
+                Genre = book.Genre,
+                Status = book.Status
             };
 
+            ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
+            ViewBag.StatusList = BuildStatusSelectList(dto.Status);
             return View(dto);
         }
 
@@ -89,6 +116,8 @@ namespace BookManagement.Web.Controllers
 
             if (!ModelState.IsValid)
             {
+                ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
+                ViewBag.StatusList = BuildStatusSelectList(dto.Status);
                 return View(dto);
             }
 
@@ -119,6 +148,32 @@ namespace BookManagement.Web.Controllers
         {
             await _bookService.DeleteBookAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        // Builds a <select> option list from the Genre enum, e.g.
+        // "SciFi" -> "Sci Fi" for display, with the current value selected.
+        private static List<SelectListItem> BuildGenreSelectList(Genre? selected)
+        {
+            return Enum.GetValues<Genre>()
+                .Select(g => new SelectListItem
+                {
+                    Value = g.ToString(),
+                    Text = System.Text.RegularExpressions.Regex.Replace(g.ToString(), "(?<!^)([A-Z])", " $1"),
+                    Selected = selected.HasValue && selected.Value == g
+                })
+                .ToList();
+        }
+
+        private static List<SelectListItem> BuildStatusSelectList(BookStatus? selected)
+        {
+            return Enum.GetValues<BookStatus>()
+                .Select(s => new SelectListItem
+                {
+                    Value = s.ToString(),
+                    Text = System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<!^)([A-Z])", " $1"),
+                    Selected = selected.HasValue && selected.Value == s
+                })
+                .ToList();
         }
     }
 }
