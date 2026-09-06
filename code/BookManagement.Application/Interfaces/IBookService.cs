@@ -11,9 +11,11 @@ namespace BookManagement.Application.Interfaces
     public interface IBookService
     {
         Task<IEnumerable<BookDto>> GetAllBooksAsync();
+        Task<IEnumerable<BookDto>> SearchBooksAsync(BookFilterDto filter);
         Task<BookDto?> GetBookByIdAsync(int id);
         Task<BookDto> CreateBookAsync(CreateBookDto dto);
         Task<bool> UpdateBookAsync(UpdateBookDto dto);
         Task<bool> DeleteBookAsync(int id);
+        Task<DashboardDto> GetDashboardDataAsync();
     }
 }

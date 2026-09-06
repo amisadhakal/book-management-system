@@ -1,3 +1,4 @@
+using BookManagement.Application.DTOs;
 using BookManagement.Domain.Entities;
 
 namespace BookManagement.Application.Interfaces
@@ -15,5 +16,10 @@ namespace BookManagement.Application.Interfaces
         void Remove(Book book);
         Task<bool> ExistsAsync(int id);
         Task SaveChangesAsync();
+
+        // Search/filter feature: applies SearchTerm/Genre/Status filters
+        // at the database level (translated to SQL by EF Core) instead
+        // of pulling every row into memory first.
+        Task<IEnumerable<Book>> GetFilteredAsync(BookFilterDto filter);
     }
 }
