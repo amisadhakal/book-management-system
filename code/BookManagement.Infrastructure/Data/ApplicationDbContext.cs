@@ -43,6 +43,7 @@ namespace BookManagement.Infrastructure.Data
                 entity.Property(b => b.Isbn).HasMaxLength(20);
                 entity.Property(b => b.Publisher).HasMaxLength(150);
                 entity.Property(b => b.Rating).HasColumnType("float").HasDefaultValue(0.0);
+                entity.Property(b => b.CoverImagePath).HasMaxLength(300);
 
                 // Speeds up the dashboard/filter queries once the table grows.
                 entity.HasIndex(b => b.Genre);

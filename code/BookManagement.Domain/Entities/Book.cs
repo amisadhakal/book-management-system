@@ -22,6 +22,8 @@ namespace BookManagement.Domain.Entities
         public string? Publisher { get; set; }
         public double Rating { get; set; } // 0.0 - 5.0
 
+        public string? CoverImagePath { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
