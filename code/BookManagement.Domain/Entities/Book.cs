@@ -1,3 +1,5 @@
+using BookManagement.Domain.Enums;
+
 namespace BookManagement.Domain.Entities
 {
     // The Domain layer is the innermost layer in Clean Architecture.
@@ -11,5 +13,12 @@ namespace BookManagement.Domain.Entities
         public string Author { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public int PublishedYear { get; set; }
+
+        // New fields for the dropdown feature.
+        public Genre Genre { get; set; }
+        public BookStatus Status { get; set; }
+
+        // Needed so the dashboard can show "recently added" books.
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
