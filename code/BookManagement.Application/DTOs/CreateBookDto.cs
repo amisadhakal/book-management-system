@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BookManagement.Domain.Enums;
 
 namespace BookManagement.Application.DTOs
 {
@@ -22,5 +23,13 @@ namespace BookManagement.Application.DTOs
         [Required(ErrorMessage = "Published year is required.")]
         [Range(1000, 2100, ErrorMessage = "Enter a reasonable published year.")]
         public int PublishedYear { get; set; }
+
+        // Bound from the Genre <select> dropdown on the Create form.
+        [Required(ErrorMessage = "Please select a genre.")]
+        public Genre Genre { get; set; }
+
+        // Bound from the Status <select> dropdown on the Create form.
+        [Required(ErrorMessage = "Please select a status.")]
+        public BookStatus Status { get; set; }
     }
 }
