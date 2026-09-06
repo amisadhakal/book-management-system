@@ -1,88 +1,151 @@
-@model IEnumerable<BookManagement.Application.DTOs.BookDto>
+@model BookManagement.Application.DTOs.DashboardDto
 
 @{
-    ViewData["Title"] = "Books";
+    ViewData["Title"] = "Dashboard";
 }
 
-<h1>Books</h1>
+<h1>Dashboard</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">+ Add New Book</a>
-    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">View Dashboard</a>
-</p>
-
-<!-- Search & filter form: a plain GET form so the results (and the
-     filter itself) are shareable/bookmarkable via the query string,
-     e.g. /Books?searchTerm=tolkien&genre=Fantasy&status=Available -->
-<form asp-action="Index" method="get" class="row g-2 mb-3 align-items-end">
-    <div class="col-md-4">
-        <label class="form-label">Search (title or author)</label>
-        <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control" placeholder="e.g. Tolkien" />
+<!-- Summary stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-bg-primary h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.TotalBooks</div>
+                <div>Total Books</div>
+            </div>
+        </div>
     </div>
     <div class="col-md-3">
-        <label class="form-label">Genre</label>
-        <select name="genre" asp-items="ViewBag.GenreList" class="form-select">
-            <option value="">All Genres</option>
-        </select>
+        <div class="card text-bg-success h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.TotalInventoryValue.ToString("C")</div>
+                <div>Total Inventory Value</div>
+            </div>
+        </div>
     </div>
     <div class="col-md-3">
-        <label class="form-label">Status</label>
-        <select name="status" asp-items="ViewBag.StatusList" class="form-select">
-            <option value="">All Statuses</option>
-        </select>
+        <div class="card text-bg-info h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.AveragePrice.ToString("C")</div>
+                <div>Average Price</div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Filter</button>
+    <div class="col-md-3">
+        <div class="card text-bg-secondary h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.TotalAuthors</div>
+                <div>Distinct Authors</div>
+            </div>
+        </div>
     </div>
-</form>
+</div>
 
-<table class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Price</th>
-            <th>Published Year</th>
-            <th>Genre</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var book in Model)
-{
-        <tr>
-            <td>@book.Id</td>
-            <td>@book.Title</td>
-            <td>@book.Author</td>
-            <td>@book.Price.ToString("C")</td>
-            <td>@book.PublishedYear</td>
-            <td><span class="badge bg-secondary">@book.Genre</span></td>
-            <td>
-                @{
-                    var badgeClass = book.Status switch
-                    {
-                        BookManagement.Domain.Enums.BookStatus.Available => "bg-success",
-                        BookManagement.Domain.Enums.BookStatus.CheckedOut => "bg-warning text-dark",
-                        BookManagement.Domain.Enums.BookStatus.Reserved => "bg-info text-dark",
-                        _ => "bg-secondary"
-                    };
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Books per Genre</div>
+            <div class="card-body"><canvas id="genreChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Books per Status</div>
+            <div class="card-body"><canvas id="statusChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Books Published by Year</div>
+            <div class="card-body"><canvas id="yearChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Price Distribution</div>
+            <div class="card-body"><canvas id="priceChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Top Authors</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var author in Model.TopAuthors)
+                {
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>@author.Author</span>
+                        <span class="badge bg-primary rounded-pill">@author.BookCount</span>
+                    </li>
                 }
-                <span class="badge @badgeClass">@book.Status</span>
-            </td>
-            <td>
-                <a asp-action="Details" asp-route-id="@book.Id" class="btn btn-sm btn-info">Details</a>
-                <a asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-warning">Edit</a>
-                <a asp-action="Delete" asp-route-id="@book.Id" class="btn btn-sm btn-danger">Delete</a>
-            </td>
-        </tr>
+                @if (!Model.TopAuthors.Any())
+                {
+                    <li class="list-group-item text-muted">No data yet.</li>
+                }
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">Recently Added</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var book in Model.RecentlyAdded)
+                {
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>@book.Title <small class="text-muted">by @book.Author</small></span>
+                        <span class="text-muted">@book.CreatedAt.ToString("MMM d, yyyy")</span>
+                    </li>
+                }
+                @if (!Model.RecentlyAdded.Any())
+                {
+                    <li class="list-group-item text-muted">No data yet.</li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        // Data is serialized server-side into small JSON arrays so Chart.js
+        // (a client-side library) can render without another HTTP round trip.
+        const genreLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BooksPerGenre.Select(g => g.Genre)));
+        const genreCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BooksPerGenre.Select(g => g.Count)));
+
+        const statusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BooksPerStatus.Select(s => s.Status)));
+        const statusCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BooksPerStatus.Select(s => s.Count)));
+
+        const yearLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BooksPerPublishedYear.Select(y => y.Year)));
+        const yearCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BooksPerPublishedYear.Select(y => y.Count)));
+
+        const priceLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PriceDistribution.Keys));
+        const priceCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PriceDistribution.Values));
+
+        new Chart(document.getElementById('genreChart'), {
+            type: 'pie',
+            data: { labels: genreLabels, datasets: [{ data: genreCounts }] }
+        });
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: { labels: statusLabels, datasets: [{ data: statusCounts }] }
+        });
+
+        new Chart(document.getElementById('yearChart'), {
+            type: 'bar',
+            data: { labels: yearLabels, datasets: [{ label: 'Books', data: yearCounts, backgroundColor: '#0d6efd' }] },
+            options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
+
+        new Chart(document.getElementById('priceChart'), {
+            type: 'bar',
+            data: { labels: priceLabels, datasets: [{ label: 'Books', data: priceCounts, backgroundColor: '#198754' }] },
+            options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        });
+    </script>
 }
-@if (!Model.Any())
-{
-        <tr>
-            <td colspan="8" class="text-center text-muted">No books match your filter.</td>
-        </tr>
-}
-    </tbody>
-</table>
