@@ -17,5 +17,9 @@ namespace BookManagement.Application.Interfaces
         Task<bool> UpdateBookAsync(UpdateBookDto dto);
         Task<bool> DeleteBookAsync(int id);
         Task<DashboardDto> GetDashboardDataAsync();
+
+        // Buy flow: marks the book Sold and records the checkout details.
+        // Returns null if the book doesn't exist or is already sold.
+        Task<OrderDto?> PurchaseBookAsync(int bookId, CheckoutDto dto);
     }
 }

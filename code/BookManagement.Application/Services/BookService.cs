@@ -178,4 +178,49 @@ namespace BookManagement.Application.Services
             CreatedAt = book.CreatedAt
         };
     }
+
+    public async Task<OrderDto?> PurchaseBookAsync(int bookId, CheckoutDto dto)
+    {
+        var book = await _bookRepository.GetByIdAsync(bookId);
+        if (book == null || book.Status == BookManagement.Domain.Enums.BookStatus.Sold)
+        {
+            return null;
+        }
+
+        var order = new Order
+        {
+            BookId = book.Id,
+            CustomerName = dto.CustomerName,
+            Email = dto.Email,
+            AddressLine1 = dto.AddressLine1,
+            AddressLine2 = dto.AddressLine2,
+            City = dto.City,
+            PostalCode = dto.PostalCode,
+            Country = dto.Country,
+            PricePaid = book.Price,
+            PurchasedAt = DateTime.UtcNow
+        };
+
+        book.Status = BookManagement.Domain.Enums.BookStatus.Sold;
+
+        await _bookRepository.AddOrderAsync(order);
+        _bookRepository.Update(book);
+        await _bookRepository.SaveChangesAsync();
+
+        return new OrderDto
+        {
+            Id = order.Id,
+            BookId = book.Id,
+            BookTitle = book.Title,
+            CustomerName = order.CustomerName,
+            Email = order.Email,
+            AddressLine1 = order.AddressLine1,
+            AddressLine2 = order.AddressLine2,
+            City = order.City,
+            PostalCode = order.PostalCode,
+            Country = order.Country,
+            PricePaid = order.PricePaid,
+            PurchasedAt = order.PurchasedAt
+        };
+    }
 }

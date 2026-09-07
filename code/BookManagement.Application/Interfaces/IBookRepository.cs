@@ -21,5 +21,11 @@ namespace BookManagement.Application.Interfaces
         // at the database level (translated to SQL by EF Core) instead
         // of pulling every row into memory first.
         Task<IEnumerable<Book>> GetFilteredAsync(BookFilterDto filter);
+
+        // Buy flow: persists the checkout record alongside the status
+        // change on the book, in the same repository so both changes
+        // save together (see AddOrderAsync + SaveChangesAsync usage in
+        // BookService.PurchaseBookAsync).
+        Task AddOrderAsync(Order order);
     }
 }
