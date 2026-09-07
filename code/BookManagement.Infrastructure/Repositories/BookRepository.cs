@@ -82,5 +82,10 @@ namespace BookManagement.Infrastructure.Repositories
 
             return await query.OrderBy(b => b.Title).ToListAsync();
         }
+
+        public async Task AddOrderAsync(Order order)
+        {
+            await _context.Orders.AddAsync(order);
+        }
     }
 }
