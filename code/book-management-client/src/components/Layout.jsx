@@ -1,14 +1,24 @@
 import { useState, useEffect } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
 
   return (
     <div className="app-shell">
@@ -20,6 +30,15 @@ export default function Layout() {
           <span />
         </button>
         <span className="mobile-brand">📚 BookVault</span>
+        <button
+          className="btn btn-ghost btn-icon mobile-theme-btn"
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label="Toggle theme"
+          style={{ marginLeft: "auto" }}
+        >
+          {theme === "dark" ? "☀️" : "🌙"}
+        </button>
       </header>
 
       {/* Sidebar overlay (mobile) */}
@@ -29,32 +48,76 @@ export default function Layout() {
       />
 
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
-        <NavLink to="/" className="brand" end>
-          <div className="brand-icon">📚</div>
-          <div>
-            <div className="brand-text">BookVault</div>
-            <div className="brand-sub">Management</div>
-          </div>
-        </NavLink>
+        {/* Brand */}
+        <div className="brand-wrap">
+          <NavLink to="/" className="brand" end>
+            <div className="brand-icon">📚</div>
+            <div>
+              <div className="brand-text">BookVault</div>
+              <div className="brand-sub">Management</div>
+            </div>
+          </NavLink>
+          <button
+            className="btn btn-ghost btn-icon theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+        </div>
 
+        {/* Navigation */}
         <nav className="side-nav">
           <span className="nav-section-label">Library</span>
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
             <span className="nav-icon">🗂️</span> Books
           </NavLink>
-          <NavLink to="/books/new" className={({ isActive }) => (isActive ? "active" : "")}>
-            <span className="nav-icon">➕</span> Add Book
-          </NavLink>
 
-          <span className="nav-section-label" style={{ marginTop: "8px" }}>Analytics</span>
-          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "active" : "")}>
-            <span className="nav-icon">📊</span> Dashboard
-          </NavLink>
+          {isAdmin() && (
+            <NavLink to="/books/new" className={({ isActive }) => (isActive ? "active" : "")}>
+              <span className="nav-icon">➕</span> Add Book
+            </NavLink>
+          )}
+
+          {isAdmin() && (
+            <>
+              <span className="nav-section-label" style={{ marginTop: "8px" }}>Analytics</span>
+              <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "active" : "")}>
+                <span className="nav-icon">📊</span> Dashboard
+              </NavLink>
+            </>
+          )}
+
+          {isAdmin() && (
+            <>
+              <span className="nav-section-label" style={{ marginTop: "8px" }}>Admin</span>
+              <NavLink to="/users" className={({ isActive }) => (isActive ? "active" : "")}>
+                <span className="nav-icon">👥</span> Users
+              </NavLink>
+            </>
+          )}
         </nav>
 
-        <div className="sidebar-footer">
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, marginBottom: 4 }}>BookVault v1.0</div>
-          <div style={{ fontSize: "0.7rem" }}>Book Management System</div>
+        {/* User info + logout */}
+        <div className="sidebar-user-card">
+          <div className={`sidebar-avatar avatar-${user?.role}`}>
+            {user?.avatar || "?"}
+          </div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{user?.name}</div>
+            <div className={`sidebar-user-role role-${user?.role}`}>
+              {user?.role === "admin" ? "⚡ Admin" : "👤 User"}
+            </div>
+          </div>
+          <button
+            className="btn btn-ghost btn-icon logout-btn"
+            onClick={handleLogout}
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            🚪
+          </button>
         </div>
       </aside>
 
