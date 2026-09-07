@@ -37,8 +37,14 @@ export default function BookDetails() {
     setBook((b) => ({ ...b, status: "Sold" }));
   }
 
-  if (notFound) return <p className="error-banner">Book not found.</p>;
-  if (!book) return <p>Loading…</p>;
+  if (notFound) return <p className="error-banner">⚠️ Book not found.</p>;
+  if (!book)
+    return (
+      <div className="loading-spinner">
+        <div className="spinner-ring" />
+        Loading book…
+      </div>
+    );
 
   return (
     <div className="details-page">
@@ -57,24 +63,30 @@ export default function BookDetails() {
           {book.coverImagePath ? (
             <img src={coverImageUrl(book.coverImagePath)} alt={book.title} />
           ) : (
-            <div className="cover-placeholder large">No Cover</div>
+            <div className="cover-placeholder large">
+              <span className="cover-placeholder-icon">📖</span>
+              No Cover
+            </div>
           )}
         </div>
+
         <div className="details-body">
           <h1>{book.title}</h1>
           <p className="muted">by {book.author}</p>
           <Stars value={book.rating} />
 
+          <div className="price-display">${book.price.toFixed(2)}</div>
+
           <dl className="details-grid">
-            <dt>Price</dt>
-            <dd>${book.price.toFixed(2)}</dd>
             <dt>Published</dt>
             <dd>{book.publishedYear}</dd>
             <dt>Genre</dt>
             <dd>{book.genre}</dd>
             <dt>Status</dt>
             <dd>
-              <span className={`status-badge status-${book.status.toLowerCase()}`}>{book.status}</span>
+              <span className={`status-badge status-${book.status.toLowerCase()} static`}>
+                {book.status}
+              </span>
             </dd>
             <dt>ISBN</dt>
             <dd>{book.isbn || "—"}</dd>
@@ -89,19 +101,19 @@ export default function BookDetails() {
               </button>
             )}
             <Link to={`/books/${book.id}/edit`} className="btn btn-secondary">
-              Edit
+              ✏️ Edit
             </Link>
             {!confirmingDelete ? (
               <button className="btn btn-danger" onClick={() => setConfirmingDelete(true)}>
-                Delete
+                🗑️ Delete
               </button>
             ) : (
               <span className="confirm-delete">
-                Delete this book permanently?
-                <button className="btn btn-danger" onClick={handleDelete} disabled={deleting}>
+                Delete permanently?
+                <button className="btn btn-danger btn-sm" onClick={handleDelete} disabled={deleting}>
                   {deleting ? "Deleting…" : "Yes, delete"}
                 </button>
-                <button className="btn btn-ghost" onClick={() => setConfirmingDelete(false)}>
+                <button className="btn btn-ghost btn-sm" onClick={() => setConfirmingDelete(false)}>
                   Cancel
                 </button>
               </span>
@@ -111,7 +123,11 @@ export default function BookDetails() {
       </div>
 
       {showCheckout && (
-        <CheckoutForm book={book} onClose={() => setShowCheckout(false)} onPurchased={handlePurchased} />
+        <CheckoutForm
+          book={book}
+          onClose={() => setShowCheckout(false)}
+          onPurchased={handlePurchased}
+        />
       )}
     </div>
   );

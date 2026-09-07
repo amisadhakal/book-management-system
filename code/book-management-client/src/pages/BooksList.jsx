@@ -23,7 +23,7 @@ export default function BooksList() {
     try {
       const data = await booksApi.list(filter);
       setBooks(data);
-    } catch (err) {
+    } catch {
       setError("Couldn't reach the API. Is BookManagement.Web running on the configured port?");
     } finally {
       setLoading(false);
@@ -53,16 +53,19 @@ export default function BooksList() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Books</h1>
+        <div className="page-header-left">
+          <h1 className="page-title">Books</h1>
+          <p className="page-subtitle">Browse and manage your book inventory</p>
+        </div>
         <Link to="/books/new" className="btn btn-primary">
-          + Add Book
+          ＋ Add Book
         </Link>
       </div>
 
       <form className="filter-bar" onSubmit={handleFilter}>
         <input
           type="text"
-          placeholder="Search title or author..."
+          placeholder="🔍 Search title or author..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -82,10 +85,10 @@ export default function BooksList() {
             </option>
           ))}
         </select>
-        <button type="submit" className="btn btn-secondary">
+        <button type="submit" className="btn btn-primary btn-sm">
           Filter
         </button>
-        <button type="button" className="btn btn-ghost" onClick={clearFilters}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={clearFilters}>
           Clear
         </button>
         <div className="view-toggle">
@@ -108,20 +111,30 @@ export default function BooksList() {
         </div>
       </form>
 
-      {error && <p className="error-banner">{error}</p>}
+      {error && <p className="error-banner">⚠️ {error}</p>}
+
       {loading ? (
-        <p>Loading books…</p>
+        <div className="loading-spinner">
+          <div className="spinner-ring" />
+          Loading books…
+        </div>
       ) : books.length === 0 ? (
-        <p className="empty-state">No books match your filters yet.</p>
+        <div className="empty-state">
+          <span className="empty-state-icon">📭</span>
+          No books match your filters yet.
+        </div>
       ) : view === "grid" ? (
         <div className="book-grid">
           {books.map((book) => (
             <Link to={`/books/${book.id}`} key={book.id} className="book-card">
               <div className="book-cover">
                 {book.coverImagePath ? (
-                  <img src={coverImageUrl(book.coverImagePath)} alt={book.title} />
+                  <img src={coverImageUrl(book.coverImagePath)} alt={book.title} loading="lazy" />
                 ) : (
-                  <div className="cover-placeholder">No Cover</div>
+                  <div className="cover-placeholder">
+                    <span className="cover-placeholder-icon">📖</span>
+                    No Cover
+                  </div>
                 )}
                 <span className={`status-badge status-${book.status.toLowerCase()}`}>
                   {book.status}
@@ -130,11 +143,11 @@ export default function BooksList() {
               <div className="book-card-body">
                 <h3>{book.title}</h3>
                 <p className="muted">{book.author}</p>
-                <div className="book-meta">
-                  <span>{book.genre}</span>
-                  <span>${book.price.toFixed(2)}</span>
-                </div>
                 <Stars value={book.rating} />
+                <div className="book-meta">
+                  <span className="book-genre-tag">{book.genre}</span>
+                  <span className="book-price">${book.price.toFixed(2)}</span>
+                </div>
               </div>
             </Link>
           ))}
@@ -145,9 +158,9 @@ export default function BooksList() {
             <Link to={`/books/${book.id}`} key={book.id} className="book-row">
               <div className="row-cover">
                 {book.coverImagePath ? (
-                  <img src={coverImageUrl(book.coverImagePath)} alt={book.title} />
+                  <img src={coverImageUrl(book.coverImagePath)} alt={book.title} loading="lazy" />
                 ) : (
-                  <div className="cover-placeholder small">—</div>
+                  <div className="cover-placeholder small">📖</div>
                 )}
               </div>
               <div className="row-main">
@@ -167,7 +180,8 @@ export default function BooksList() {
 
       {!loading && !error && (
         <div className="status-bar">
-          📖 {books.length} book{books.length === 1 ? "" : "s"} in library
+          <div className="status-bar-dot" />
+          {books.length} book{books.length === 1 ? "" : "s"} in library
         </div>
       )}
     </div>

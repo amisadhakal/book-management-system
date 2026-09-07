@@ -31,7 +31,9 @@ export default function BookForm() {
   useEffect(() => {
     booksApi.getOptions().then((opts) => {
       setOptions(opts);
-      setBook((b) => (isEdit ? b : { ...b, genre: opts.genres[0]?.value ?? "", status: opts.statuses[0]?.value ?? "" }));
+      setBook((b) =>
+        isEdit ? b : { ...b, genre: opts.genres[0]?.value ?? "", status: opts.statuses[0]?.value ?? "" }
+      );
     });
   }, [isEdit]);
 
@@ -83,23 +85,45 @@ export default function BookForm() {
     }
   }
 
-  if (loading) return <p>Loading…</p>;
+  if (loading)
+    return (
+      <div className="loading-spinner">
+        <div className="spinner-ring" />
+        Loading book…
+      </div>
+    );
 
   return (
     <div className="form-page">
-      <h1>{isEdit ? "Edit Book" : "Add Book"}</h1>
+      <div className="page-header">
+        <div className="page-header-left">
+          <h1 className="page-title">{isEdit ? "Edit Book" : "Add Book"}</h1>
+          <p className="page-subtitle">{isEdit ? "Update book details below" : "Fill in the details to add a new book"}</p>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="book-form">
-        {errors._general && <p className="error-banner">{errors._general}</p>}
+        {errors._general && <p className="error-banner">⚠️ {errors._general}</p>}
 
         <label>
           Title
-          <input value={book.title} onChange={(e) => handleChange("title", e.target.value)} required />
+          <input
+            value={book.title}
+            onChange={(e) => handleChange("title", e.target.value)}
+            placeholder="e.g. The Great Gatsby"
+            required
+          />
           <FieldError errors={errors} field="Title" />
         </label>
 
         <label>
           Author
-          <input value={book.author} onChange={(e) => handleChange("author", e.target.value)} required />
+          <input
+            value={book.author}
+            onChange={(e) => handleChange("author", e.target.value)}
+            placeholder="e.g. F. Scott Fitzgerald"
+            required
+          />
           <FieldError errors={errors} field="Author" />
         </label>
 
@@ -112,6 +136,7 @@ export default function BookForm() {
               min="0.01"
               value={book.price}
               onChange={(e) => handleChange("price", e.target.value)}
+              placeholder="0.00"
               required
             />
             <FieldError errors={errors} field="Price" />
@@ -156,11 +181,19 @@ export default function BookForm() {
         <div className="form-row">
           <label>
             ISBN
-            <input value={book.isbn || ""} onChange={(e) => handleChange("isbn", e.target.value)} />
+            <input
+              value={book.isbn || ""}
+              onChange={(e) => handleChange("isbn", e.target.value)}
+              placeholder="978-..."
+            />
           </label>
           <label>
             Publisher
-            <input value={book.publisher || ""} onChange={(e) => handleChange("publisher", e.target.value)} />
+            <input
+              value={book.publisher || ""}
+              onChange={(e) => handleChange("publisher", e.target.value)}
+              placeholder="e.g. Penguin Books"
+            />
           </label>
         </div>
 
@@ -173,6 +206,7 @@ export default function BookForm() {
             max="5"
             value={book.rating}
             onChange={(e) => handleChange("rating", e.target.value)}
+            placeholder="0.0"
           />
         </label>
 
@@ -190,7 +224,16 @@ export default function BookForm() {
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? (
+              <>
+                <span className="spinner-ring" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                Saving…
+              </>
+            ) : isEdit ? (
+              "💾 Save Changes"
+            ) : (
+              "➕ Add Book"
+            )}
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}>
             Cancel
