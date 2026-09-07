@@ -4,10 +4,6 @@ using BookManagement.Domain.Entities;
 
 namespace BookManagement.Application.Services
 {
-    // This is where the actual CRUD + analytics workflow logic lives. It
-    // depends only on IBookRepository (an abstraction), not on EF Core or
-    // SQL Server directly — so this class could be unit-tested with a fake
-    // in-memory repository, with no database involved at all.
     public class BookService : IBookService
     {
         private readonly IBookRepository _bookRepository;
@@ -61,6 +57,7 @@ namespace BookManagement.Application.Services
         public async Task<bool> UpdateBookAsync(UpdateBookDto dto)
         {
             var book = await _bookRepository.GetByIdAsync(dto.Id);
+
             if (book == null)
             {
                 return false;
@@ -79,12 +76,14 @@ namespace BookManagement.Application.Services
 
             _bookRepository.Update(book);
             await _bookRepository.SaveChangesAsync();
+
             return true;
         }
 
         public async Task<bool> DeleteBookAsync(int id)
         {
             var book = await _bookRepository.GetByIdAsync(id);
+
             if (book == null)
             {
                 return false;
@@ -92,14 +91,10 @@ namespace BookManagement.Application.Services
 
             _bookRepository.Remove(book);
             await _bookRepository.SaveChangesAsync();
+
             return true;
         }
 
-        // Assembles every number/chart the Dashboard view needs in one
-        // call. For a small-to-medium book catalog, doing the aggregation
-        // in memory (LINQ-to-Objects) after one GetAllAsync() is simpler
-        // and plenty fast; if the catalog grows large, push each of these
-        // aggregates down into repository-level SQL queries instead.
         public async Task<DashboardDto> GetDashboardDataAsync()
         {
             var books = (await _bookRepository.GetAllAsync()).ToList();
@@ -107,31 +102,55 @@ namespace BookManagement.Application.Services
             var dashboard = new DashboardDto
             {
                 TotalBooks = books.Count,
+
                 TotalInventoryValue = books.Sum(b => b.Price),
-                AveragePrice = books.Count == 0 ? 0 : books.Average(b => b.Price),
-                TotalAuthors = books.Select(b => b.Author).Distinct().Count(),
+
+                AveragePrice = books.Count == 0
+                    ? 0
+                    : books.Average(b => b.Price),
+
+                TotalAuthors = books
+                    .Select(b => b.Author)
+                    .Distinct()
+                    .Count(),
 
                 BooksPerGenre = books
                     .GroupBy(b => b.Genre)
-                    .Select(g => new GenreCountDto { Genre = g.Key.ToString(), Count = g.Count() })
+                    .Select(g => new GenreCountDto
+                    {
+                        Genre = g.Key.ToString(),
+                        Count = g.Count()
+                    })
                     .OrderByDescending(g => g.Count)
                     .ToList(),
 
                 BooksPerStatus = books
                     .GroupBy(b => b.Status)
-                    .Select(g => new StatusCountDto { Status = g.Key.ToString(), Count = g.Count() })
+                    .Select(g => new StatusCountDto
+                    {
+                        Status = g.Key.ToString(),
+                        Count = g.Count()
+                    })
                     .OrderByDescending(g => g.Count)
                     .ToList(),
 
                 BooksPerPublishedYear = books
                     .GroupBy(b => b.PublishedYear)
-                    .Select(g => new YearTrendDto { Year = g.Key, Count = g.Count() })
+                    .Select(g => new YearTrendDto
+                    {
+                        Year = g.Key,
+                        Count = g.Count()
+                    })
                     .OrderBy(g => g.Year)
                     .ToList(),
 
                 TopAuthors = books
                     .GroupBy(b => b.Author)
-                    .Select(g => new TopAuthorDto { Author = g.Key, BookCount = g.Count() })
+                    .Select(g => new TopAuthorDto
+                    {
+                        Author = g.Key,
+                        BookCount = g.Count()
+                    })
                     .OrderByDescending(g => g.BookCount)
                     .Take(5)
                     .ToList(),
@@ -143,7 +162,6 @@ namespace BookManagement.Application.Services
                     .ToList()
             };
 
-            // Bucket prices into simple ranges for a price-distribution chart.
             var buckets = new (string Label, decimal Min, decimal Max)[]
             {
                 ("$0-10", 0, 10),
@@ -155,11 +173,66 @@ namespace BookManagement.Application.Services
 
             foreach (var bucket in buckets)
             {
-                var count = books.Count(b => b.Price >= bucket.Min && b.Price < bucket.Max);
+                var count = books.Count(
+                    b => b.Price >= bucket.Min &&
+                         b.Price < bucket.Max
+                );
+
                 dashboard.PriceDistribution[bucket.Label] = count;
             }
 
             return dashboard;
+        }
+
+        public async Task<OrderDto?> PurchaseBookAsync(
+            int bookId,
+            CheckoutDto dto)
+        {
+            var book = await _bookRepository.GetByIdAsync(bookId);
+
+            if (book == null ||
+                book.Status == BookManagement.Domain.Enums.BookStatus.Sold)
+            {
+                return null;
+            }
+
+            var order = new Order
+            {
+                BookId = book.Id,
+                CustomerName = dto.CustomerName,
+                Email = dto.Email,
+                AddressLine1 = dto.AddressLine1,
+                AddressLine2 = dto.AddressLine2,
+                City = dto.City,
+                PostalCode = dto.PostalCode,
+                Country = dto.Country,
+                PricePaid = book.Price,
+                PurchasedAt = DateTime.UtcNow
+            };
+
+            book.Status = BookManagement.Domain.Enums.BookStatus.Sold;
+
+            await _bookRepository.AddOrderAsync(order);
+
+            _bookRepository.Update(book);
+
+            await _bookRepository.SaveChangesAsync();
+
+            return new OrderDto
+            {
+                Id = order.Id,
+                BookId = book.Id,
+                BookTitle = book.Title,
+                CustomerName = order.CustomerName,
+                Email = order.Email,
+                AddressLine1 = order.AddressLine1,
+                AddressLine2 = order.AddressLine2,
+                City = order.City,
+                PostalCode = order.PostalCode,
+                Country = order.Country,
+                PricePaid = order.PricePaid,
+                PurchasedAt = order.PurchasedAt
+            };
         }
 
         private static BookDto MapToDto(Book book) => new()
@@ -176,51 +249,6 @@ namespace BookManagement.Application.Services
             Rating = book.Rating,
             CoverImagePath = book.CoverImagePath,
             CreatedAt = book.CreatedAt
-        };
-    }
-
-    public async Task<OrderDto?> PurchaseBookAsync(int bookId, CheckoutDto dto)
-    {
-        var book = await _bookRepository.GetByIdAsync(bookId);
-        if (book == null || book.Status == BookManagement.Domain.Enums.BookStatus.Sold)
-        {
-            return null;
-        }
-
-        var order = new Order
-        {
-            BookId = book.Id,
-            CustomerName = dto.CustomerName,
-            Email = dto.Email,
-            AddressLine1 = dto.AddressLine1,
-            AddressLine2 = dto.AddressLine2,
-            City = dto.City,
-            PostalCode = dto.PostalCode,
-            Country = dto.Country,
-            PricePaid = book.Price,
-            PurchasedAt = DateTime.UtcNow
-        };
-
-        book.Status = BookManagement.Domain.Enums.BookStatus.Sold;
-
-        await _bookRepository.AddOrderAsync(order);
-        _bookRepository.Update(book);
-        await _bookRepository.SaveChangesAsync();
-
-        return new OrderDto
-        {
-            Id = order.Id,
-            BookId = book.Id,
-            BookTitle = book.Title,
-            CustomerName = order.CustomerName,
-            Email = order.Email,
-            AddressLine1 = order.AddressLine1,
-            AddressLine2 = order.AddressLine2,
-            City = order.City,
-            PostalCode = order.PostalCode,
-            Country = order.Country,
-            PricePaid = order.PricePaid,
-            PurchasedAt = order.PurchasedAt
         };
     }
 }
