@@ -4,6 +4,7 @@ namespace BookManagement.Domain.Enums
     {
         Available = 0,
         CheckedOut = 1,
-        Reserved = 2
+        Reserved = 2,
+        Sold = 3
     }
 }
