@@ -82,6 +82,8 @@ h1 { margin: 0 0 4px; }
 .btn-secondary { background: #eef0fd; color: var(--primary-dark); }
 .btn-ghost { background: transparent; color: var(--muted); }
 .btn-danger { background: #fee2e2; color: var(--danger); }
+.btn-buy { background: #16a34a; color: #fff; }
+.btn-buy:hover { background: #15803d; }
 .btn:disabled { opacity: 0.6; cursor: default; }
 
 .filter-bar {
@@ -162,6 +164,7 @@ h1 { margin: 0 0 4px; }
 .status-available { color: #16a34a; }
 .status-checkedout { color: #ea580c; }
 .status-reserved { color: #2563eb; }
+.status-sold { color: #71717a; background: #f4f4f5; }
 .book-card-body { padding: 12px 14px; }
 .book-card-body h3 { margin: 0 0 2px; font-size: 1rem; }
 .muted { color: var(--muted); margin: 0 0 6px; font-size: 0.88rem; }
@@ -217,3 +220,47 @@ h1 { margin: 0 0 4px; }
 .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-bottom: 30px; }
 .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .chart-card h3 { margin: 0 0 8px; font-size: 0.95rem; }
+
+.order-confirmation {
+  background: #dcfce7;
+  color: #166534;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 30, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 22px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.modal-header h2 { margin: 0; }
+.modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; }
+.checkout-summary {
+  display: flex;
+  justify-content: space-between;
+  background: #f8f9fd;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+.checkout-modal .book-form { padding: 0; border: none; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+.muted.small { font-size: 0.8rem; margin: 0; }

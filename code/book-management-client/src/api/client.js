@@ -49,6 +49,8 @@ export const booksApi = {
     }),
 
   remove: (id) => api.delete(`/api/books/${id}`),
+
+  buy: (id, checkout) => api.post(`/api/books/${id}/buy`, checkout).then((r) => r.data),
 };
 
 export const dashboardApi = {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { booksApi, coverImageUrl } from "../api/client";
 import Stars from "../components/Stars";
+import CheckoutForm from "../components/CheckoutForm";
 
 export default function BookDetails() {
   const { id } = useParams();
@@ -10,6 +11,8 @@ export default function BookDetails() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [order, setOrder] = useState(null);
 
   useEffect(() => {
     booksApi
@@ -28,6 +31,12 @@ export default function BookDetails() {
     }
   }
 
+  function handlePurchased(placedOrder) {
+    setOrder(placedOrder);
+    setShowCheckout(false);
+    setBook((b) => ({ ...b, status: "Sold" }));
+  }
+
   if (notFound) return <p className="error-banner">Book not found.</p>;
   if (!book) return <p>Loading…</p>;
 
@@ -36,6 +45,13 @@ export default function BookDetails() {
       <Link to="/" className="back-link">
         ← Back to books
       </Link>
+
+      {order && (
+        <div className="order-confirmation">
+          🎉 Order placed! A confirmation for <strong>{order.bookTitle}</strong> was sent to {order.email}.
+        </div>
+      )}
+
       <div className="details-card">
         <div className="details-cover">
           {book.coverImagePath ? (
@@ -67,6 +83,11 @@ export default function BookDetails() {
           </dl>
 
           <div className="form-actions">
+            {book.status !== "Sold" && (
+              <button className="btn btn-buy" onClick={() => setShowCheckout(true)}>
+                🛒 Buy — ${book.price.toFixed(2)}
+              </button>
+            )}
             <Link to={`/books/${book.id}/edit`} className="btn btn-secondary">
               Edit
             </Link>
@@ -88,6 +109,10 @@ export default function BookDetails() {
           </div>
         </div>
       </div>
+
+      {showCheckout && (
+        <CheckoutForm book={book} onClose={() => setShowCheckout(false)} onPurchased={handlePurchased} />
+      )}
     </div>
   );
 }
