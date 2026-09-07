@@ -137,6 +137,28 @@ namespace BookManagement.Web.Controllers
             return NoContent();
         }
 
+        // POST /api/books/5/buy
+        // Full checkout flow (name, address, card-style fields) but no
+        // real payment processor is involved — card details are validated
+        // for shape only and never stored. On success the book flips to
+        // BookStatus.Sold and an Order record is created.
+        [HttpPost("{id:int}/buy")]
+        public async Task<ActionResult<OrderDto>> Buy(int id, [FromBody] CheckoutDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var order = await _bookService.PurchaseBookAsync(id, dto);
+            if (order == null)
+            {
+                return Conflict("This book doesn't exist or has already been sold.");
+            }
+
+            return Ok(order);
+        }
+
         // Builds { value, label } pairs from an enum, e.g.
         // "SciFi" -> "Sci Fi", for the React dropdowns.
         private static List<object> BuildOptionList(IEnumerable<Enum> values)
