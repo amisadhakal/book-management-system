@@ -11,6 +11,7 @@ export default function BooksList() {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [view, setView] = useState("grid");
 
   useEffect(() => {
     booksApi.getOptions().then(setOptions).catch(() => {});
@@ -52,7 +53,7 @@ export default function BooksList() {
   return (
     <div>
       <div className="page-header">
-        <h1>Books</h1>
+        <h1 className="page-title">Books</h1>
         <Link to="/books/new" className="btn btn-primary">
           + Add Book
         </Link>
@@ -87,6 +88,24 @@ export default function BooksList() {
         <button type="button" className="btn btn-ghost" onClick={clearFilters}>
           Clear
         </button>
+        <div className="view-toggle">
+          <button
+            type="button"
+            className={view === "grid" ? "active" : ""}
+            onClick={() => setView("grid")}
+            title="Grid view"
+          >
+            ▦
+          </button>
+          <button
+            type="button"
+            className={view === "list" ? "active" : ""}
+            onClick={() => setView("list")}
+            title="List view"
+          >
+            ☰
+          </button>
+        </div>
       </form>
 
       {error && <p className="error-banner">{error}</p>}
@@ -94,7 +113,7 @@ export default function BooksList() {
         <p>Loading books…</p>
       ) : books.length === 0 ? (
         <p className="empty-state">No books match your filters yet.</p>
-      ) : (
+      ) : view === "grid" ? (
         <div className="book-grid">
           {books.map((book) => (
             <Link to={`/books/${book.id}`} key={book.id} className="book-card">
@@ -119,6 +138,36 @@ export default function BooksList() {
               </div>
             </Link>
           ))}
+        </div>
+      ) : (
+        <div className="book-list">
+          {books.map((book) => (
+            <Link to={`/books/${book.id}`} key={book.id} className="book-row">
+              <div className="row-cover">
+                {book.coverImagePath ? (
+                  <img src={coverImageUrl(book.coverImagePath)} alt={book.title} />
+                ) : (
+                  <div className="cover-placeholder small">—</div>
+                )}
+              </div>
+              <div className="row-main">
+                <h3>{book.title}</h3>
+                <p className="muted">{book.author}</p>
+              </div>
+              <span className="row-genre">{book.genre}</span>
+              <Stars value={book.rating} />
+              <span className="row-price">${book.price.toFixed(2)}</span>
+              <span className={`status-badge status-${book.status.toLowerCase()} static`}>
+                {book.status}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="status-bar">
+          📖 {books.length} book{books.length === 1 ? "" : "s"} in library
         </div>
       )}
     </div>
