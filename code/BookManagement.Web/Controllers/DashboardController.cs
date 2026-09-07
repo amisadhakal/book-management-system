@@ -1,3 +1,4 @@
+using BookManagement.Application.DTOs;
 using BookManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,8 +6,10 @@ namespace BookManagement.Web.Controllers
 {
     // Same pattern as BooksController: depends only on IBookService.
     // One action, one call — GetDashboardDataAsync() assembles every
-    // number and chart series the view needs.
-    public class DashboardController : Controller
+    // number and chart series the React dashboard page needs.
+    [ApiController]
+    [Route("api/dashboard")]
+    public class DashboardController : ControllerBase
     {
         private readonly IBookService _bookService;
 
@@ -15,11 +18,12 @@ namespace BookManagement.Web.Controllers
             _bookService = bookService;
         }
 
-        // GET /Dashboard
-        public async Task<IActionResult> Index()
+        // GET /api/dashboard
+        [HttpGet]
+        public async Task<ActionResult<DashboardDto>> Index()
         {
             var dashboard = await _bookService.GetDashboardDataAsync();
-            return View(dashboard);
+            return Ok(dashboard);
         }
     }
 }

@@ -2,16 +2,18 @@ using BookManagement.Application.DTOs;
 using BookManagement.Application.Interfaces;
 using BookManagement.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookManagement.Web.Controllers
 {
-    // Notice the constructor only asks for IBookService. This controller
-    // has never heard of ApplicationDbContext, EF Core, or SQL Server —
-    // it doesn't even have a project reference to Infrastructure. That's
-    // the point of Clean Architecture: swap SQL Server for PostgreSQL, or
-    // even swap EF Core for Dapper, and this file never changes.
-    public class BooksController : Controller
+    // Same IBookService dependency as before — only *how the result gets
+    // to the caller* changed. Instead of picking a .cshtml view and
+    // rendering HTML server-side, every action now returns plain JSON
+    // (via Ok(...)/NotFound()/etc.), which any frontend — React, mobile,
+    // whatever — can consume. Clean Architecture pays off here: nothing
+    // in Domain/Application/Infrastructure had to change for this.
+    [ApiController]
+    [Route("api/books")]
+    public class BooksController : ControllerBase
     {
         private static readonly string[] AllowedCoverExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxCoverSizeBytes = 5 * 1024 * 1024; // 5 MB
@@ -25,11 +27,9 @@ namespace BookManagement.Web.Controllers
             _env = env;
         }
 
-        // GET /Books
-        // Also handles search/filter: searchTerm, genre and status all
-        // come in as optional query-string params from the filter form
-        // on Index.cshtml, e.g. /Books?searchTerm=tolkien&genre=Fantasy
-        public async Task<IActionResult> Index(string? searchTerm, Genre? genre, BookStatus? status)
+        // GET /api/books?searchTerm=tolkien&genre=Fantasy&status=Available
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<BookDto>>> Index(string? searchTerm, Genre? genre, BookStatus? status)
         {
             var filter = new BookFilterDto
             {
@@ -39,39 +39,37 @@ namespace BookManagement.Web.Controllers
             };
 
             var books = await _bookService.SearchBooksAsync(filter);
-
-            // Echo the current filter back to the view so the form fields
-            // stay populated with what the user searched for.
-            ViewBag.SearchTerm = searchTerm;
-            ViewBag.GenreList = BuildGenreSelectList(genre);
-            ViewBag.StatusList = BuildStatusSelectList(status);
-
-            return View(books);
+            return Ok(books);
         }
 
-        // GET /Books/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET /api/books/options
+        // The React app calls this once to populate the Genre/Status
+        // dropdowns, so the enum lists live in one place (the backend).
+        [HttpGet("options")]
+        public ActionResult GetOptions()
+        {
+            return Ok(new
+            {
+                genres = BuildOptionList(Enum.GetValues<Genre>().Cast<Enum>()),
+                statuses = BuildOptionList(Enum.GetValues<BookStatus>().Cast<Enum>())
+            });
+        }
+
+        // GET /api/books/5
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<BookDto>> Details(int id)
         {
             var book = await _bookService.GetBookByIdAsync(id);
             if (book == null)
             {
                 return NotFound();
             }
-            return View(book);
+            return Ok(book);
         }
 
-        // GET /Books/Create
-        public IActionResult Create()
-        {
-            ViewBag.GenreList = BuildGenreSelectList(null);
-            ViewBag.StatusList = BuildStatusSelectList(null);
-            return View();
-        }
-
-        // POST /Books/Create
+        // POST /api/books  (multipart/form-data so a cover image can ride along)
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateBookDto dto, IFormFile? coverImage)
+        public async Task<ActionResult<BookDto>> Create([FromForm] CreateBookDto dto, IFormFile? coverImage)
         {
             if (coverImage != null && coverImage.Length > 0 && !TryValidateCoverImage(coverImage, out var error))
             {
@@ -80,9 +78,7 @@ namespace BookManagement.Web.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
-                ViewBag.StatusList = BuildStatusSelectList(dto.Status);
-                return View(dto);
+                return ValidationProblem(ModelState);
             }
 
             if (coverImage != null && coverImage.Length > 0)
@@ -90,47 +86,17 @@ namespace BookManagement.Web.Controllers
                 dto.CoverImagePath = await SaveCoverImageAsync(coverImage);
             }
 
-            await _bookService.CreateBookAsync(dto);
-            return RedirectToAction(nameof(Index));
+            var created = await _bookService.CreateBookAsync(dto);
+            return CreatedAtAction(nameof(Details), new { id = created.Id }, created);
         }
 
-        // GET /Books/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var book = await _bookService.GetBookByIdAsync(id);
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            var dto = new UpdateBookDto
-            {
-                Id = book.Id,
-                Title = book.Title,
-                Author = book.Author,
-                Price = book.Price,
-                PublishedYear = book.PublishedYear,
-                Genre = book.Genre,
-                Status = book.Status,
-                Isbn = book.Isbn,
-                Publisher = book.Publisher,
-                Rating = book.Rating,
-                CoverImagePath = book.CoverImagePath
-            };
-
-            ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
-            ViewBag.StatusList = BuildStatusSelectList(dto.Status);
-            return View(dto);
-        }
-
-        // POST /Books/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UpdateBookDto dto, IFormFile? coverImage)
+        // PUT /api/books/5  (multipart/form-data)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Edit(int id, [FromForm] UpdateBookDto dto, IFormFile? coverImage)
         {
             if (id != dto.Id)
             {
-                return NotFound();
+                return BadRequest("Route id and body id must match.");
             }
 
             if (coverImage != null && coverImage.Length > 0 && !TryValidateCoverImage(coverImage, out var error))
@@ -140,14 +106,11 @@ namespace BookManagement.Web.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.GenreList = BuildGenreSelectList(dto.Genre);
-                ViewBag.StatusList = BuildStatusSelectList(dto.Status);
-                return View(dto);
+                return ValidationProblem(ModelState);
             }
 
-            // dto.CoverImagePath already holds the existing path, round-tripped
-            // via the hidden field in Edit.cshtml. Only overwrite it if the
-            // user actually picked a new file this time.
+            // dto.CoverImagePath should be posted back from the client as
+            // the existing path; only overwrite it if a new file came in.
             if (coverImage != null && coverImage.Length > 0)
             {
                 dto.CoverImagePath = await SaveCoverImageAsync(coverImage);
@@ -159,47 +122,38 @@ namespace BookManagement.Web.Controllers
                 return NotFound();
             }
 
-            return RedirectToAction(nameof(Index));
+            return NoContent();
         }
 
-        // GET /Books/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        // DELETE /api/books/5
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> Delete(int id)
         {
-            var book = await _bookService.GetBookByIdAsync(id);
-            if (book == null)
+            var deleted = await _bookService.DeleteBookAsync(id);
+            if (!deleted)
             {
                 return NotFound();
             }
-            return View(book);
+            return NoContent();
         }
 
-        // POST /Books/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        // Builds { value, label } pairs from an enum, e.g.
+        // "SciFi" -> "Sci Fi", for the React dropdowns.
+        private static List<object> BuildOptionList(IEnumerable<Enum> values)
         {
-            await _bookService.DeleteBookAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Builds a <select> option list from the Genre enum, e.g.
-        // "SciFi" -> "Sci Fi" for display, with the current value selected.
-        private static List<SelectListItem> BuildGenreSelectList(Genre? selected)
-        {
-            return Enum.GetValues<Genre>()
-                .Select(g => new SelectListItem
+            return values
+                .Select(v => (object)new
                 {
-                    Value = g.ToString(),
-                    Text = System.Text.RegularExpressions.Regex.Replace(g.ToString(), "(?<!^)([A-Z])", " $1"),
-                    Selected = selected.HasValue && selected.Value == g
+                    value = v.ToString(),
+                    label = System.Text.RegularExpressions.Regex.Replace(v.ToString()!, "(?<!^)([A-Z])", " $1")
                 })
                 .ToList();
         }
 
         // Saves the uploaded file under wwwroot/uploads/covers with a
-        // random file name (so titles/collisions never matter) and
-        // returns the relative URL to store on the book, e.g.
-        // "/uploads/covers/3f2a1c9e4b7d4a2f.jpg".
+        // random file name and returns the relative URL to store on the
+        // book, e.g. "/uploads/covers/3f2a1c9e4b7d4a2f.jpg". The React
+        // app resolves this against the API's base URL to show the image.
         private async Task<string> SaveCoverImageAsync(IFormFile file)
         {
             var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "covers");
@@ -234,18 +188,6 @@ namespace BookManagement.Web.Controllers
 
             error = null;
             return true;
-        }
-
-        private static List<SelectListItem> BuildStatusSelectList(BookStatus? selected)
-        {
-            return Enum.GetValues<BookStatus>()
-                .Select(s => new SelectListItem
-                {
-                    Value = s.ToString(),
-                    Text = System.Text.RegularExpressions.Regex.Replace(s.ToString(), "(?<!^)([A-Z])", " $1"),
-                    Selected = selected.HasValue && selected.Value == s
-                })
-                .ToList();
         }
     }
 }
