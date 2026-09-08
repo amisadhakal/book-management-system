@@ -1107,7 +1107,31 @@ body {
 }
 .sidebar-user-role.role-admin { color: var(--primary-light); }
 .sidebar-user-role.role-user { color: var(--green); }
-.logout-btn { font-size: 1rem; flex-shrink: 0; }
+.logout-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.logout-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.logout-svg-icon {
+  transition: transform 0.2s ease;
+}
+.logout-btn:hover .logout-svg-icon {
+  transform: translateX(2px);
+}
 
 /* ─── Role Badges ────────────────────────────────────────────── */
 .role-badge {
@@ -1621,4 +1645,626 @@ body {
 [data-theme="light"] .status-bar {
   background: #ffffff;
 }
+
+/* ─── 3D Model Styling & Animation System ───────────────────── */
+.hero-3d-banner {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
+  align-items: center;
+  gap: 36px;
+  background: linear-gradient(135deg, rgba(0, 128, 105, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: 1px solid rgba(0, 168, 132, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 36px 44px;
+  margin-bottom: 36px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+[data-theme="light"] .hero-3d-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e2e8f0 100%);
+  border: 1px solid rgba(0, 128, 105, 0.2);
+  box-shadow: 0 12px 36px rgba(0, 128, 105, 0.08);
+}
+
+.hero-3d-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 2;
+}
+
+.hero-3d-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 168, 132, 0.15);
+  border: 1px solid rgba(0, 168, 132, 0.35);
+  color: #00a884;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+[data-theme="light"] .hero-3d-badge {
+  color: #008069;
+  background: rgba(0, 128, 105, 0.1);
+  border-color: rgba(0, 128, 105, 0.25);
+}
+
+.hero-3d-dot {
+  width: 7px;
+  height: 7px;
+  background: #25d366;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #25d366;
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.hero-3d-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  line-height: 1.22;
+}
+
+.hero-3d-desc {
+  font-size: 0.94rem;
+  color: var(--text-2);
+  line-height: 1.55;
+  max-width: 520px;
+}
+
+.hero-3d-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.hero-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stat-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.hero-stat-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.hero-3d-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.hero-btn {
+  background: #008069;
+  box-shadow: 0 4px 14px rgba(0, 128, 105, 0.35);
+}
+.hero-btn:hover {
+  background: #009374;
+}
+
+.hero-btn-secondary {
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+/* ─── 3D Slider Animation Stage ─────────────────────────────── */
+.slider-3d-stage {
+  perspective: 1200px;
+  position: relative;
+  width: 100%;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  z-index: 3;
+}
+
+.slider-3d-glow {
+  position: absolute;
+  top: 15%;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 168, 132, 0.28) 0%, transparent 70%);
+  filter: blur(48px);
+  pointer-events: none;
+}
+
+/* 3D Carousel Track */
+.slider-3d-track {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* 3D Book Slide Card */
+.slider-3d-card {
+  position: absolute;
+  width: 165px;
+  height: 240px;
+  transform-style: preserve-3d;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+/* Center Active Slide */
+.slider-3d-card.active-slide {
+  transform: perspective(1000px) translateX(0) translateZ(45px) rotateY(0deg) scale(1);
+  opacity: 1;
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.45));
+}
+
+/* Previous (Left) Angled Slide */
+.slider-3d-card.prev-slide {
+  transform: perspective(1000px) translateX(-130px) translateZ(-50px) rotateY(28deg) scale(0.85);
+  opacity: 0.72;
+  filter: brightness(0.85);
+}
+
+.slider-3d-card.prev-slide:hover {
+  opacity: 0.95;
+  filter: brightness(1);
+  transform: perspective(1000px) translateX(-120px) translateZ(-30px) rotateY(22deg) scale(0.88);
+}
+
+/* Next (Right) Angled Slide */
+.slider-3d-card.next-slide {
+  transform: perspective(1000px) translateX(130px) translateZ(-50px) rotateY(-28deg) scale(0.85);
+  opacity: 0.72;
+  filter: brightness(0.85);
+}
+
+.slider-3d-card.next-slide:hover {
+  opacity: 0.95;
+  filter: brightness(1);
+  transform: perspective(1000px) translateX(120px) translateZ(-30px) rotateY(-22deg) scale(0.88);
+}
+
+/* 3D Book Volume Assembly */
+.book-3d-volume {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.slider-3d-card.active-slide:hover .book-3d-volume {
+  transform: rotateY(-8deg) rotateX(4deg) translateY(-6px);
+}
+
+/* Front Cover */
+.book-3d-front {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: translateZ(16px);
+  border-radius: 3px 10px 10px 3px;
+  overflow: hidden;
+  box-shadow: inset 4px 0 10px rgba(0, 0, 0, 0.4), inset -2px 0 5px rgba(255, 255, 255, 0.15), 6px 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.book-3d-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.book-3d-leather-cover {
+  width: 100%;
+  height: 100%;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 3px 10px 10px 3px;
+}
+
+.book-3d-crest {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.book-3d-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.book-3d-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-3d-author {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.3px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-3d-seal-tag {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  background: rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  color: #ffd700;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.book-3d-glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.25) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%);
+  pointer-events: none;
+}
+
+/* 3D Spine */
+.book-3d-spine {
+  position: absolute;
+  left: -16px;
+  top: 0;
+  width: 32px;
+  height: 100%;
+  transform-origin: right;
+  transform: rotateY(-90deg);
+  background: linear-gradient(90deg, #03362f 0%, #075e54 50%, #03362f 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+  border-radius: 3px 0 0 3px;
+}
+
+.book-3d-spine-ribs {
+  width: 80%;
+  height: 2px;
+  background: #ffd700;
+  opacity: 0.6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.book-3d-spine-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  max-height: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3D Pages Block */
+.book-3d-pages {
+  position: absolute;
+  right: 0;
+  top: 5px;
+  width: 30px;
+  height: calc(100% - 10px);
+  transform-origin: right;
+  transform: rotateY(90deg) translateZ(-6px);
+  background: repeating-linear-gradient(
+    0deg,
+    #f8f5ee 0px,
+    #f8f5ee 2px,
+    #e8dfcf 2px,
+    #e8dfcf 4px
+  );
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.25);
+  border-radius: 0 2px 2px 0;
+}
+
+/* 3D Back Cover */
+.book-3d-back {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(-16px);
+  background: #042e28;
+  border-radius: 3px 10px 10px 3px;
+  box-shadow: -4px 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* 3D Bookmark Ribbon */
+.book-3d-ribbon {
+  position: absolute;
+  bottom: -20px;
+  right: 44px;
+  width: 14px;
+  height: 36px;
+  background: #dc2626;
+  transform: translateZ(10px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  animation: ribbonWave 4s ease-in-out infinite alternate;
+}
+
+@keyframes ribbonWave {
+  0% { transform: translateZ(10px) rotate(0deg); }
+  100% { transform: translateZ(10px) rotate(5deg); }
+}
+
+/* 3D Ambient Floor Shadow for Each Slide */
+.slider-3d-shadow {
+  position: absolute;
+  bottom: -10px;
+  left: 10px;
+  width: 145px;
+  height: 18px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.slider-3d-card.active-slide .slider-3d-shadow {
+  transform: scale(1.15);
+  opacity: 0.8;
+}
+
+/* Navigation Arrow Buttons */
+.slider-arrow {
+  position: absolute;
+  top: 36%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.slider-arrow:hover {
+  background: #008069;
+  color: #ffffff;
+  border-color: #008069;
+  transform: scale(1.12);
+  box-shadow: 0 6px 18px rgba(0, 128, 105, 0.4);
+}
+
+.slider-arrow-prev {
+  left: -8px;
+}
+
+.slider-arrow-next {
+  right: -8px;
+}
+
+/* Active Book Information Bar */
+.slider-active-meta {
+  width: 100%;
+  max-width: 360px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.slider-meta-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.slider-meta-genre {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.slider-meta-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slider-meta-author {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.slider-meta-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.slider-inspect-link {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #00a884;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+[data-theme="light"] .slider-inspect-link {
+  color: #008069;
+}
+
+.slider-inspect-link:hover {
+  text-decoration: underline;
+}
+
+/* Slider Dot Indicators */
+.slider-dots-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.slider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-dot.active {
+  width: 22px;
+  border-radius: 99px;
+  background: #00a884;
+  box-shadow: 0 0 8px rgba(0, 168, 132, 0.5);
+}
+
+[data-theme="light"] .slider-dot.active {
+  background: #008069;
+}
+
+/* ── 3D Card Styling on Book Catalog Grid ── */
+.book-grid {
+  perspective: 1000px;
+}
+
+.book-card {
+  transform-style: preserve-3d;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  position: relative;
+}
+
+.book-card:hover {
+  transform: translateY(-8px) rotateY(-4deg) rotateX(3deg);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 0 20px rgba(0, 168, 132, 0.15);
+}
+
+.book-cover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0%, rgba(255, 255, 255, 0.12) 50%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero-3d-banner {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .hero-3d-content {
+    align-items: center;
+  }
+
+  .hero-3d-desc {
+    max-width: 100%;
+  }
+
+  .hero-3d-stats {
+    justify-content: center;
+  }
+
+  .hero-3d-actions {
+    justify-content: center;
+  }
+
+  .slider-3d-stage {
+    min-height: 320px;
+  }
+  .slider-3d-card.prev-slide {
+    transform: perspective(1000px) translateX(-90px) translateZ(-40px) rotateY(26deg) scale(0.8);
+  }
+  .slider-3d-card.next-slide {
+    transform: perspective(1000px) translateX(90px) translateZ(-40px) rotateY(-26deg) scale(0.8);
+  }
+}
+
 
