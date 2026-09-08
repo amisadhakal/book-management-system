@@ -1354,16 +1354,16 @@ body {
 
 /* Header */
 .clean-auth-header {
-  margin-bottom: 20px;
-  text-align: left;
+  margin-bottom: 22px;
+  text-align: center;
 }
 
 .clean-auth-title {
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.08rem;
+  font-weight: 600;
   color: var(--auth-text);
   letter-spacing: -0.01em;
-  margin-bottom: 6px;
+  line-height: 1.45;
 }
 
 .clean-auth-desc {

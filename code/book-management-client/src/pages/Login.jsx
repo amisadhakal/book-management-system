@@ -141,18 +141,6 @@ export default function Login({ initialTab }) {
 
         {/* Clean Centered Card with Harmonious Colors */}
         <div className="clean-auth-card">
-          {/* Header Title */}
-          <div className="clean-auth-header">
-            <h2 className="clean-auth-title">
-              {tab === "login" ? "Sign In" : "Create Account"}
-            </h2>
-            <p className="clean-auth-desc">
-              {tab === "login"
-                ? "Enter your email and password to access your library."
-                : "Enter your details below to register a new account."}
-            </p>
-          </div>
-
           {/* Navigation Tabs */}
           <div className="clean-tabs-pill">
             <button

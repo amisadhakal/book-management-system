@@ -70,7 +70,7 @@ export default function BooksList() {
             Experience different books based on your genre and styles
           </h1>
           <p className="hero-3d-desc">
-            Explore curated titles across fiction, science, history, philosophy, and modern literature in real-time 3D perspective.
+            Explore curated titles across fiction, science, history, philosophy, and modern literature in real-time.
           </p>
 
           <div className="hero-3d-stats">
