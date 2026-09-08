@@ -8,6 +8,9 @@ import BookDetails from "./pages/BookDetails";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import UsersPage from "./pages/UsersPage";
+import Cart from "./pages/Cart";
+import Favorites from "./pages/Favorites";
+import { SelectionProvider } from "./context/SelectionContext";
 
 // Require login; optionally require admin role
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -42,6 +45,8 @@ function AppRoutes() {
       >
         <Route path="/" element={<BooksList />} />
         <Route path="/books/:id" element={<BookDetails />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/favorites" element={<Favorites />} />
 
         {/* Admin-only routes */}
         <Route
@@ -88,9 +93,11 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <SelectionProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </SelectionProvider>
       </AuthProvider>
     </ThemeProvider>
   );

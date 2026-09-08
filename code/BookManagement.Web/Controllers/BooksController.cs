@@ -159,6 +159,28 @@ namespace BookManagement.Web.Controllers
             return Ok(order);
         }
 
+        // POST /api/books/buy-cart
+        // Bulk cart checkout: purchase any number of books in one request.
+        // The response includes per-book success/failure so the client can
+        // surface partial errors (e.g. a book that was sold between add-to-
+        // cart and checkout) without aborting the rest of the order.
+        [HttpPost("buy-cart")]
+        public async Task<ActionResult<CartOrderResultDto>> BuyCart([FromBody] CartCheckoutDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            if (dto.BookIds == null || dto.BookIds.Count == 0)
+            {
+                return BadRequest("No books selected for checkout.");
+            }
+
+            var result = await _bookService.PurchaseCartAsync(dto);
+            return Ok(result);
+        }
+
         // Builds { value, label } pairs from an enum, e.g.
         // "SciFi" -> "Sci Fi", for the React dropdowns.
         private static List<object> BuildOptionList(IEnumerable<Enum> values)

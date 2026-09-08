@@ -4,6 +4,7 @@ import { booksApi, coverImageUrl } from "../api/client";
 import Stars from "../components/Stars";
 import CheckoutForm from "../components/CheckoutForm";
 import { useAuth } from "../context/AuthContext";
+import { useSelection } from "../context/SelectionContext";
 
 export default function BookDetails() {
   const { id } = useParams();
@@ -15,6 +16,7 @@ export default function BookDetails() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [order, setOrder] = useState(null);
   const { isAdmin } = useAuth();
+  const { isInCart, addToCart, removeFromCart, isInFavorites, addToFavorites, removeFromFavorites } = useSelection();
 
   useEffect(() => {
     booksApi
@@ -98,10 +100,25 @@ export default function BookDetails() {
 
           <div className="form-actions">
             {book.status !== "Sold" && (
-              <button className="btn btn-buy" onClick={() => setShowCheckout(true)}>
-                🛒 Buy — ₹{book.price.toFixed(2)}
-              </button>
+              <>
+                <button className="btn btn-buy" onClick={() => setShowCheckout(true)}>
+                  🛒 Buy — ₹{book.price.toFixed(2)}
+                </button>
+                <button 
+                  className={`btn ${isInCart(book.id) ? 'btn-ghost' : 'btn-primary'}`} 
+                  onClick={() => isInCart(book.id) ? removeFromCart(book.id) : addToCart(book)}
+                >
+                  {isInCart(book.id) ? 'Remove from Cart' : 'Add to Cart'}
+                </button>
+              </>
             )}
+            
+            <button 
+              className={`btn ${isInFavorites(book.id) ? 'btn-ghost' : 'btn-secondary'}`} 
+              onClick={() => isInFavorites(book.id) ? removeFromFavorites(book.id) : addToFavorites(book)}
+            >
+              {isInFavorites(book.id) ? '❤️ Remove from Favorites' : '🤍 Add to Favorites'}
+            </button>
 
             {isAdmin() && (
               <>

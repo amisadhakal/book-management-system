@@ -235,6 +235,83 @@ namespace BookManagement.Application.Services
             };
         }
 
+        // Bulk cart purchase: buy any number of books in a single DB commit.
+        // Books that are already Sold (or missing) are reported in the Failed
+        // list rather than aborting the whole transaction.
+        public async Task<CartOrderResultDto> PurchaseCartAsync(CartCheckoutDto dto)
+        {
+            var result = new CartOrderResultDto();
+            var purchasedAt = DateTime.UtcNow;
+
+            foreach (var bookId in dto.BookIds.Distinct())
+            {
+                var book = await _bookRepository.GetByIdAsync(bookId);
+
+                if (book == null)
+                {
+                    result.Failed.Add(new FailedBookDto
+                    {
+                        BookId = bookId,
+                        BookTitle = "Unknown",
+                        Reason = "Book not found."
+                    });
+                    continue;
+                }
+
+                if (book.Status == BookManagement.Domain.Enums.BookStatus.Sold)
+                {
+                    result.Failed.Add(new FailedBookDto
+                    {
+                        BookId = book.Id,
+                        BookTitle = book.Title,
+                        Reason = "Already sold."
+                    });
+                    continue;
+                }
+
+                var order = new Order
+                {
+                    BookId = book.Id,
+                    CustomerName = dto.CustomerName,
+                    Email = dto.Email,
+                    AddressLine1 = dto.AddressLine1,
+                    AddressLine2 = dto.AddressLine2,
+                    City = dto.City,
+                    PostalCode = dto.PostalCode,
+                    Country = dto.Country,
+                    PricePaid = book.Price,
+                    PurchasedAt = purchasedAt
+                };
+
+                book.Status = BookManagement.Domain.Enums.BookStatus.Sold;
+                _bookRepository.Update(book);
+                await _bookRepository.AddOrderAsync(order);
+
+                result.Succeeded.Add(new OrderDto
+                {
+                    Id = 0, // will be set after SaveChanges; we snapshot here
+                    BookId = book.Id,
+                    BookTitle = book.Title,
+                    CustomerName = order.CustomerName,
+                    Email = order.Email,
+                    AddressLine1 = order.AddressLine1,
+                    AddressLine2 = order.AddressLine2,
+                    City = order.City,
+                    PostalCode = order.PostalCode,
+                    Country = order.Country,
+                    PricePaid = order.PricePaid,
+                    PurchasedAt = order.PurchasedAt
+                });
+            }
+
+            // One SaveChanges for all books — atomically commits every status
+            // flip and order record created in this loop.
+            await _bookRepository.SaveChangesAsync();
+
+            result.TotalPaid = result.Succeeded.Sum(o => o.PricePaid);
+            return result;
+        }
+
         private static BookDto MapToDto(Book book) => new()
         {
             Id = book.Id,

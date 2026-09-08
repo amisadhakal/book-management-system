@@ -51,6 +51,11 @@ export const booksApi = {
   remove: (id) => api.delete(`/api/books/${id}`),
 
   buy: (id, checkout) => api.post(`/api/books/${id}/buy`, checkout).then((r) => r.data),
+
+  // Bulk cart checkout — sends all book IDs in one request.
+  // Returns { succeeded: OrderDto[], failed: FailedBookDto[], totalPaid: number }
+  buyCart: (bookIds, checkout) =>
+    api.post("/api/books/buy-cart", { bookIds, ...checkout }).then((r) => r.data),
 };
 
 export const dashboardApi = {

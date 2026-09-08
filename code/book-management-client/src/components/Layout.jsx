@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useSelection } from "../context/SelectionContext";
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -9,6 +10,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const { user, isAdmin, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { cart, favorites } = useSelection();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -72,6 +74,14 @@ export default function Layout() {
           <span className="nav-section-label">Library</span>
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
             <span className="nav-icon">🗂️</span> Books
+          </NavLink>
+          <NavLink to="/favorites" className={({ isActive }) => (isActive ? "active" : "")}>
+            <span className="nav-icon">❤️</span> Favorites
+            {favorites.length > 0 && <span className="nav-badge">{favorites.length}</span>}
+          </NavLink>
+          <NavLink to="/cart" className={({ isActive }) => (isActive ? "active" : "")}>
+            <span className="nav-icon">🛒</span> Cart
+            {cart.length > 0 && <span className="nav-badge">{cart.length}</span>}
           </NavLink>
 
           {isAdmin() && (

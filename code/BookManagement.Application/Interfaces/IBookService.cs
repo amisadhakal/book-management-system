@@ -21,5 +21,9 @@ namespace BookManagement.Application.Interfaces
         // Buy flow: marks the book Sold and records the checkout details.
         // Returns null if the book doesn't exist or is already sold.
         Task<OrderDto?> PurchaseBookAsync(int bookId, CheckoutDto dto);
+
+        // Bulk cart buy: purchases all books in one shot, returns per-book
+        // success/failure so the caller can show partial results.
+        Task<CartOrderResultDto> PurchaseCartAsync(CartCheckoutDto dto);
     }
 }

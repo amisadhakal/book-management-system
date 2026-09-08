@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { booksApi, coverImageUrl } from "../api/client";
 import Stars from "../components/Stars";
 import { useAuth } from "../context/AuthContext";
+import { useSelection } from "../context/SelectionContext";
 
 export default function BooksList() {
   const [books, setBooks] = useState([]);
@@ -14,6 +15,7 @@ export default function BooksList() {
   const [error, setError] = useState(null);
   const [view, setView] = useState("grid");
   const { isAdmin } = useAuth();
+  const { isInCart, addToCart, removeFromCart, isInFavorites, addToFavorites, removeFromFavorites } = useSelection();
 
   useEffect(() => {
     booksApi.getOptions().then(setOptions).catch(() => {});
@@ -188,6 +190,28 @@ export default function BooksList() {
                 <span className={`status-badge status-${book.status.toLowerCase()}`}>
                   {book.status}
                 </span>
+                <div className="card-quick-actions">
+                  <button 
+                    className={`quick-action-btn ${isInFavorites(book.id) ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      isInFavorites(book.id) ? removeFromFavorites(book.id) : addToFavorites(book);
+                    }}
+                    title={isInFavorites(book.id) ? "Remove from Favorites" : "Add to Favorites"}
+                  >
+                    ❤️
+                  </button>
+                  <button 
+                    className={`quick-action-btn ${isInCart(book.id) ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      isInCart(book.id) ? removeFromCart(book.id) : addToCart(book);
+                    }}
+                    title={isInCart(book.id) ? "Remove from Cart" : "Add to Cart"}
+                  >
+                    🛒
+                  </button>
+                </div>
               </div>
               <div className="book-card-body">
                 <h3>{book.title}</h3>
@@ -196,6 +220,29 @@ export default function BooksList() {
                 <div className="book-meta">
                   <span className="book-genre-tag">{book.genre}</span>
                   <span className="book-price">₹{book.price.toFixed(2)}</span>
+                </div>
+                <div style={{ marginTop: "12px", display: "flex", gap: "8px" }}>
+                  <button 
+                    className={`btn btn-sm ${isInCart(book.id) ? 'btn-secondary' : 'btn-primary'}`} 
+                    style={{ flex: 1, padding: "6px" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      isInCart(book.id) ? removeFromCart(book.id) : addToCart(book);
+                    }}
+                  >
+                    {isInCart(book.id) ? 'In Cart' : 'Add to Cart'}
+                  </button>
+                  <button 
+                    className={`btn btn-sm ${isInFavorites(book.id) ? 'btn-secondary' : 'btn-ghost'}`} 
+                    style={{ padding: "6px 10px" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      isInFavorites(book.id) ? removeFromFavorites(book.id) : addToFavorites(book);
+                    }}
+                    title={isInFavorites(book.id) ? "Remove from Favorites" : "Add to Favorites"}
+                  >
+                    {isInFavorites(book.id) ? '❤️' : '🤍'}
+                  </button>
                 </div>
               </div>
             </Link>
@@ -219,6 +266,28 @@ export default function BooksList() {
               <span className="row-genre">{book.genre}</span>
               <Stars value={book.rating} />
               <span className="row-price">₹{book.price.toFixed(2)}</span>
+              <div className="row-quick-actions" style={{ display: "flex", gap: "8px" }}>
+                <button 
+                  className={`btn btn-sm ${isInCart(book.id) ? 'btn-secondary' : 'btn-primary'}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    isInCart(book.id) ? removeFromCart(book.id) : addToCart(book);
+                  }}
+                  title="Cart"
+                >
+                  {isInCart(book.id) ? 'In Cart' : '🛒 Add'}
+                </button>
+                <button 
+                  className={`btn btn-sm ${isInFavorites(book.id) ? 'btn-secondary' : 'btn-ghost'}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    isInFavorites(book.id) ? removeFromFavorites(book.id) : addToFavorites(book);
+                  }}
+                  title="Favorites"
+                >
+                  {isInFavorites(book.id) ? '❤️' : '🤍'}
+                </button>
+              </div>
               <span className={`status-badge status-${book.status.toLowerCase()} static`}>
                 {book.status}
               </span>
