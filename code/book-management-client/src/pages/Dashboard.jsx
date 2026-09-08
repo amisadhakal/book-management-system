@@ -66,8 +66,8 @@ export default function Dashboard() {
       {/* Stat Cards */}
       <div className="stat-cards">
         <StatCard icon="📚" label="Total Books" value={data.totalBooks} />
-        <StatCard icon="💰" label="Inventory Value" value={`$${data.totalInventoryValue.toFixed(2)}`} />
-        <StatCard icon="📊" label="Average Price" value={`$${data.averagePrice.toFixed(2)}`} />
+        <StatCard icon="💰" label="Inventory Value" value={`₹${data.totalInventoryValue.toFixed(2)}`} />
+        <StatCard icon="📊" label="Average Price" value={`₹${data.averagePrice.toFixed(2)}`} />
         <StatCard icon="✍️" label="Authors" value={data.totalAuthors} />
       </div>
 

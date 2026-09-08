@@ -129,7 +129,7 @@ export default function BookForm() {
 
         <div className="form-row">
           <label>
-            Price ($)
+            Price (₹)
             <input
               type="number"
               step="0.01"

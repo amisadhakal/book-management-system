@@ -121,7 +121,7 @@ export default function CheckoutForm({ book, onClose, onPurchased }) {
               by {book.author}
             </div>
           </div>
-          <div className="checkout-summary-price">${book.price.toFixed(2)}</div>
+          <div className="checkout-summary-price">₹{book.price.toFixed(2)}</div>
         </div>
 
         {errors._general && (
@@ -306,7 +306,7 @@ export default function CheckoutForm({ book, onClose, onPurchased }) {
               <div>
                 <div style={{ fontSize: "0.78rem", color: "var(--muted)", fontWeight: 600 }}>ORDER TOTAL</div>
                 <div style={{ fontWeight: 800, fontSize: "1.4rem", color: "var(--primary-light)", letterSpacing: "-0.02em" }}>
-                  ${book.price.toFixed(2)}
+                  ₹{book.price.toFixed(2)}
                 </div>
               </div>
               <div style={{ fontSize: "0.78rem", color: "var(--muted)", textAlign: "right" }}>
@@ -336,7 +336,7 @@ export default function CheckoutForm({ book, onClose, onPurchased }) {
                     Placing Order…
                   </>
                 ) : (
-                  `🔒 Pay $${book.price.toFixed(2)}`
+                  `🔒 Pay ₹${book.price.toFixed(2)}`
                 )}
               </button>
             </div>

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { booksApi, coverImageUrl } from "../api/client";
 import Stars from "../components/Stars";
 import CheckoutForm from "../components/CheckoutForm";
+import { useAuth } from "../context/AuthContext";
 
 export default function BookDetails() {
   const { id } = useParams();
@@ -13,6 +14,7 @@ export default function BookDetails() {
   const [notFound, setNotFound] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [order, setOrder] = useState(null);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     booksApi
@@ -75,7 +77,7 @@ export default function BookDetails() {
           <p className="muted">by {book.author}</p>
           <Stars value={book.rating} />
 
-          <div className="price-display">${book.price.toFixed(2)}</div>
+          <div className="price-display">₹{book.price.toFixed(2)}</div>
 
           <dl className="details-grid">
             <dt>Published</dt>
@@ -97,26 +99,31 @@ export default function BookDetails() {
           <div className="form-actions">
             {book.status !== "Sold" && (
               <button className="btn btn-buy" onClick={() => setShowCheckout(true)}>
-                🛒 Buy — ${book.price.toFixed(2)}
+                🛒 Buy — ₹{book.price.toFixed(2)}
               </button>
             )}
-            <Link to={`/books/${book.id}/edit`} className="btn btn-secondary">
-              ✏️ Edit
-            </Link>
-            {!confirmingDelete ? (
-              <button className="btn btn-danger" onClick={() => setConfirmingDelete(true)}>
-                🗑️ Delete
-              </button>
-            ) : (
-              <span className="confirm-delete">
-                Delete permanently?
-                <button className="btn btn-danger btn-sm" onClick={handleDelete} disabled={deleting}>
-                  {deleting ? "Deleting…" : "Yes, delete"}
-                </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setConfirmingDelete(false)}>
-                  Cancel
-                </button>
-              </span>
+
+            {isAdmin() && (
+              <>
+                <Link to={`/books/${book.id}/edit`} className="btn btn-secondary">
+                  ✏️ Edit
+                </Link>
+                {!confirmingDelete ? (
+                  <button className="btn btn-danger" onClick={() => setConfirmingDelete(true)}>
+                    🗑️ Delete
+                  </button>
+                ) : (
+                  <span className="confirm-delete">
+                    Delete permanently?
+                    <button className="btn btn-danger btn-sm" onClick={handleDelete} disabled={deleting}>
+                      {deleting ? "Deleting…" : "Yes, delete"}
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setConfirmingDelete(false)}>
+                      Cancel
+                    </button>
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

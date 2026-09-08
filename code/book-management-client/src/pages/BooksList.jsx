@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { booksApi, coverImageUrl } from "../api/client";
 import Stars from "../components/Stars";
+import { useAuth } from "../context/AuthContext";
 
 export default function BooksList() {
   const [books, setBooks] = useState([]);
@@ -12,6 +13,7 @@ export default function BooksList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [view, setView] = useState("grid");
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     booksApi.getOptions().then(setOptions).catch(() => {});
@@ -57,9 +59,11 @@ export default function BooksList() {
           <h1 className="page-title">Books</h1>
           <p className="page-subtitle">Browse and manage your book inventory</p>
         </div>
-        <Link to="/books/new" className="btn btn-primary">
-          ＋ Add Book
-        </Link>
+        {isAdmin() && (
+          <Link to="/books/new" className="btn btn-primary">
+            ＋ Add Book
+          </Link>
+        )}
       </div>
 
       <form className="filter-bar" onSubmit={handleFilter}>
@@ -146,7 +150,7 @@ export default function BooksList() {
                 <Stars value={book.rating} />
                 <div className="book-meta">
                   <span className="book-genre-tag">{book.genre}</span>
-                  <span className="book-price">${book.price.toFixed(2)}</span>
+                  <span className="book-price">₹{book.price.toFixed(2)}</span>
                 </div>
               </div>
             </Link>
@@ -169,7 +173,7 @@ export default function BooksList() {
               </div>
               <span className="row-genre">{book.genre}</span>
               <Stars value={book.rating} />
-              <span className="row-price">${book.price.toFixed(2)}</span>
+              <span className="row-price">₹{book.price.toFixed(2)}</span>
               <span className={`status-badge status-${book.status.toLowerCase()} static`}>
                 {book.status}
               </span>
